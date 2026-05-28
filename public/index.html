@@ -5,131 +5,97 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IT Helpdesk</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f0; color: #1a1a1a; min-height: 100vh; }
-
-  /* Layout */
-  .layout { display: flex; min-height: 100vh; }
-  .sidebar { width: 220px; background: #1a1a1a; color: #fff; flex-shrink: 0; display: flex; flex-direction: column; padding: 1.25rem 0; }
-  .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 0 1.25rem 1.25rem; border-bottom: 1px solid #333; margin-bottom: 1rem; }
-  .sidebar-logo span { font-size: 15px; font-weight: 600; }
-  .sidebar-logo svg { width: 22px; height: 22px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; flex-shrink: 0; }
-  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 1.25rem; font-size: 14px; color: #aaa; cursor: pointer; border-left: 3px solid transparent; transition: all .15s; }
-  .nav-item:hover { color: #fff; background: #2a2a2a; }
-  .nav-item.active { color: #fff; border-left-color: #fff; background: #2a2a2a; }
-  .nav-item svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; flex-shrink: 0; }
-  .sidebar-foot { margin-top: auto; padding: 1rem 1.25rem 0; border-top: 1px solid #333; }
-  .user-info { font-size: 13px; color: #aaa; margin-bottom: 10px; }
-  .user-info strong { display: block; color: #fff; font-size: 14px; }
-  .btn-logout { width: 100%; padding: 8px; background: transparent; border: 1px solid #444; color: #aaa; border-radius: 6px; font-size: 13px; cursor: pointer; font-family: inherit; transition: all .15s; }
-  .btn-logout:hover { background: #2a2a2a; color: #fff; }
-
-  /* Main */
-  .main { flex: 1; overflow-y: auto; }
-  .topbar { background: #fff; border-bottom: 1px solid #e5e5e0; padding: 0 1.5rem; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
-  .topbar h2 { font-size: 16px; font-weight: 600; }
-  .content { padding: 1.5rem; }
-
-  /* Views */
-  .view { display: none; }
-  .view.active { display: block; }
-
-  /* Stats */
-  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 1.5rem; }
-  .stat { background: #fff; border: 1px solid #e5e5e0; border-radius: 10px; padding: 1rem 1.25rem; }
-  .stat-label { font-size: 12px; color: #888; margin-bottom: 4px; }
-  .stat-val { font-size: 26px; font-weight: 600; }
-  .stat-val.blue { color: #185FA5; }
-  .stat-val.amber { color: #BA7517; }
-  .stat-val.green { color: #3B6D11; }
-
-  /* Filters */
-  .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
-  .filter-pill { border: 1px solid #e5e5e0; background: transparent; color: #888; border-radius: 20px; padding: 5px 14px; font-size: 13px; cursor: pointer; font-family: inherit; transition: all .15s; }
-  .filter-pill.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
-  .filter-pill:hover:not(.active) { background: #f5f5f0; }
-  .ml-auto { margin-left: auto; }
-
-  /* Ticket table */
-  .ticket-table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #e5e5e0; border-radius: 10px; overflow: hidden; font-size: 13px; }
-  .ticket-table th { background: #f9f9f7; padding: 10px 14px; text-align: left; font-weight: 500; color: #666; border-bottom: 1px solid #e5e5e0; }
-  .ticket-table td { padding: 11px 14px; border-bottom: 1px solid #f0f0ec; vertical-align: middle; }
-  .ticket-table tr:last-child td { border-bottom: none; }
-  .ticket-table tr:hover td { background: #fafaf8; cursor: pointer; }
-  .ticket-title-cell { font-weight: 500; color: #1a1a1a; }
-  .ticket-sub { font-size: 12px; color: #888; margin-top: 2px; }
-
-  /* Badges */
-  .badge { display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
-  .badge-open { background: #E6F1FB; color: #0C447C; }
-  .badge-in_progress { background: #FAEEDA; color: #633806; }
-  .badge-done { background: #EAF3DE; color: #27500A; }
-  .badge-rendah { background: #EAF3DE; color: #27500A; }
-  .badge-sedang { background: #E6F1FB; color: #0C447C; }
-  .badge-tinggi { background: #FAEEDA; color: #633806; }
-  .badge-kritis { background: #FCEBEB; color: #791F1F; }
-
-  /* Cat icons */
-  .cat-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
-
-  /* Form */
-  .form-card { background: #fff; border: 1px solid #e5e5e0; border-radius: 10px; padding: 1.5rem; max-width: 620px; }
-  .form-group { margin-bottom: 1rem; }
-  .form-label { display: block; font-size: 13px; color: #555; margin-bottom: 6px; font-weight: 500; }
-  .form-control { width: 100%; border: 1px solid #e5e5e0; border-radius: 8px; padding: 9px 12px; font-size: 14px; font-family: inherit; color: #1a1a1a; background: #fff; outline: none; transition: border .15s; }
-  .form-control:focus { border-color: #1a1a1a; }
-  textarea.form-control { resize: vertical; min-height: 100px; }
-  .cat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 1rem; }
-  .cat-card { border: 1px solid #e5e5e0; border-radius: 8px; padding: 12px; cursor: pointer; transition: all .15s; background: #fff; }
-  .cat-card:hover { border-color: #aaa; }
-  .cat-card.selected { border: 2px solid #1a1a1a; background: #f9f9f9; }
-  .cat-card .cat-title { font-size: 13px; font-weight: 500; margin-top: 4px; }
-  .cat-card .cat-sub { font-size: 11px; color: #888; margin-top: 2px; }
-  .cat-icon-lg { font-size: 22px; }
-
-  /* Buttons */
-  .btn { cursor: pointer; border: 1px solid #e5e5e0; background: #fff; color: #1a1a1a; border-radius: 8px; padding: 8px 16px; font-size: 13px; font-family: inherit; transition: all .15s; }
-  .btn:hover { background: #f5f5f0; }
-  .btn-primary { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
-  .btn-primary:hover { opacity: .85; background: #1a1a1a; }
-  .btn-sm { padding: 6px 12px; font-size: 12px; }
-  .btn-row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.5rem; }
-
-  /* Detail */
-  .detail-grid { display: grid; grid-template-columns: 1fr 280px; gap: 1rem; }
-  .detail-main { display: flex; flex-direction: column; gap: 1rem; }
-  .detail-side { display: flex; flex-direction: column; gap: 1rem; }
-  .panel { background: #fff; border: 1px solid #e5e5e0; border-radius: 10px; padding: 1.25rem; }
-  .panel h3 { font-size: 14px; font-weight: 600; margin-bottom: 1rem; padding-bottom: 10px; border-bottom: 1px solid #f0f0ec; }
-  .meta-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #f0f0ec; font-size: 13px; }
-  .meta-row:last-child { border-bottom: none; }
-  .meta-key { color: #888; }
-  .meta-val { font-weight: 500; }
-  .desc-text { font-size: 14px; line-height: 1.7; color: #333; white-space: pre-wrap; }
-
-  /* Komentar */
-  .komentar-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 1rem; }
-  .komentar-item { background: #f9f9f7; border-radius: 8px; padding: 10px 12px; }
-  .komentar-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 12px; color: #888; }
-  .komentar-header strong { color: #1a1a1a; }
-  .komentar-body { font-size: 13px; line-height: 1.6; }
-
-  /* Empty */
-  .empty { text-align: center; padding: 3rem; color: #888; font-size: 14px; }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    .sidebar { display: none; }
-    .stats { grid-template-columns: repeat(2, 1fr); }
-    .detail-grid { grid-template-columns: 1fr; }
-    .cat-grid { grid-template-columns: 1fr; }
-  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;color:#1a1a1a;min-height:100vh}
+  .layout{display:flex;min-height:100vh}
+  .sidebar{width:220px;background:#1a1a1a;color:#fff;flex-shrink:0;display:flex;flex-direction:column;padding:1.25rem 0}
+  .sidebar-logo{display:flex;align-items:center;gap:10px;padding:0 1.25rem 1.25rem;border-bottom:1px solid #333;margin-bottom:1rem}
+  .sidebar-logo span{font-size:15px;font-weight:600}
+  .sidebar-logo svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;flex-shrink:0}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 1.25rem;font-size:14px;color:#aaa;cursor:pointer;border-left:3px solid transparent;transition:all .15s}
+  .nav-item:hover{color:#fff;background:#2a2a2a}
+  .nav-item.active{color:#fff;border-left-color:#fff;background:#2a2a2a}
+  .nav-item svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;flex-shrink:0}
+  .sidebar-foot{margin-top:auto;padding:1rem 1.25rem 0;border-top:1px solid #333}
+  .user-info{font-size:13px;color:#aaa;margin-bottom:10px}
+  .user-info strong{display:block;color:#fff;font-size:14px}
+  .btn-logout{width:100%;padding:8px;background:transparent;border:1px solid #444;color:#aaa;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit}
+  .btn-logout:hover{background:#2a2a2a;color:#fff}
+  .main{flex:1;overflow-y:auto}
+  .topbar{background:#fff;border-bottom:1px solid #e5e5e0;padding:0 1.5rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+  .topbar h2{font-size:16px;font-weight:600}
+  .topbar-right{display:flex;align-items:center;gap:8px}
+  .content{padding:1.5rem}
+  .view{display:none}
+  .view.active{display:block}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem}
+  .stat{background:#fff;border:1px solid #e5e5e0;border-radius:10px;padding:1rem 1.25rem}
+  .stat-label{font-size:12px;color:#888;margin-bottom:4px}
+  .stat-val{font-size:26px;font-weight:600}
+  .stat-val.blue{color:#185FA5}
+  .stat-val.amber{color:#BA7517}
+  .stat-val.green{color:#3B6D11}
+  .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:1rem;flex-wrap:wrap}
+  .filter-pill{border:1px solid #e5e5e0;background:transparent;color:#888;border-radius:20px;padding:5px 14px;font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s}
+  .filter-pill.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+  .filter-pill:hover:not(.active){background:#f5f5f0}
+  .last-update{font-size:12px;color:#aaa}
+  .ticket-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e5e5e0;border-radius:10px;overflow:hidden;font-size:13px}
+  .ticket-table th{background:#f9f9f7;padding:10px 14px;text-align:left;font-weight:500;color:#666;border-bottom:1px solid #e5e5e0}
+  .ticket-table td{padding:11px 14px;border-bottom:1px solid #f0f0ec;vertical-align:middle}
+  .ticket-table tr:last-child td{border-bottom:none}
+  .ticket-table tr.clickable:hover td{background:#fafaf8;cursor:pointer}
+  .ticket-title-cell{font-weight:500;color:#1a1a1a}
+  .ticket-sub{font-size:12px;color:#888;margin-top:2px}
+  .badge{display:inline-block;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;white-space:nowrap}
+  .badge-open{background:#E6F1FB;color:#0C447C}
+  .badge-in_progress{background:#FAEEDA;color:#633806}
+  .badge-done{background:#EAF3DE;color:#27500A}
+  .badge-rendah{background:#EAF3DE;color:#27500A}
+  .badge-sedang{background:#E6F1FB;color:#0C447C}
+  .badge-tinggi{background:#FAEEDA;color:#633806}
+  .badge-kritis{background:#FCEBEB;color:#791F1F}
+  .cat-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+  .form-card{background:#fff;border:1px solid #e5e5e0;border-radius:10px;padding:1.5rem;max-width:620px}
+  .form-group{margin-bottom:1rem}
+  .form-label{display:block;font-size:13px;color:#555;margin-bottom:6px;font-weight:500}
+  .form-control{width:100%;border:1px solid #e5e5e0;border-radius:8px;padding:9px 12px;font-size:14px;font-family:inherit;color:#1a1a1a;background:#fff;outline:none;transition:border .15s}
+  .form-control:focus{border-color:#1a1a1a}
+  textarea.form-control{resize:vertical;min-height:100px}
+  .cat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:1rem}
+  .cat-card{border:1px solid #e5e5e0;border-radius:8px;padding:12px;cursor:pointer;transition:all .15s;background:#fff;text-align:left;width:100%}
+  .cat-card:hover{border-color:#aaa}
+  .cat-card.selected{border:2px solid #1a1a1a;background:#f9f9f9}
+  .cat-card .cat-title{font-size:13px;font-weight:500;margin-top:4px}
+  .cat-card .cat-sub{font-size:11px;color:#888;margin-top:2px}
+  .cat-icon-lg{font-size:22px}
+  .btn{cursor:pointer;border:1px solid #e5e5e0;background:#fff;color:#1a1a1a;border-radius:8px;padding:8px 16px;font-size:13px;font-family:inherit;transition:all .15s}
+  .btn:hover{background:#f5f5f0}
+  .btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+  .btn-primary:hover{opacity:.85;background:#1a1a1a}
+  .btn-sm{padding:6px 12px;font-size:12px}
+  .btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:1.5rem}
+  .detail-grid{display:grid;grid-template-columns:1fr 280px;gap:1rem}
+  .detail-main{display:flex;flex-direction:column;gap:1rem}
+  .detail-side{display:flex;flex-direction:column;gap:1rem}
+  .panel{background:#fff;border:1px solid #e5e5e0;border-radius:10px;padding:1.25rem}
+  .panel h3{font-size:14px;font-weight:600;margin-bottom:1rem;padding-bottom:10px;border-bottom:1px solid #f0f0ec}
+  .meta-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f0f0ec;font-size:13px}
+  .meta-row:last-child{border-bottom:none}
+  .meta-key{color:#888}
+  .meta-val{font-weight:500}
+  .desc-text{font-size:14px;line-height:1.7;color:#333;white-space:pre-wrap}
+  .komentar-list{display:flex;flex-direction:column;gap:12px;margin-bottom:1rem}
+  .komentar-item{background:#f9f9f7;border-radius:8px;padding:10px 12px}
+  .komentar-header{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px;color:#888}
+  .komentar-header strong{color:#1a1a1a}
+  .komentar-body{font-size:13px;line-height:1.6}
+  .empty{text-align:center;padding:3rem;color:#888;font-size:14px}
+  @media(max-width:768px){.sidebar{display:none}.stats{grid-template-columns:repeat(2,1fr)}.detail-grid{grid-template-columns:1fr}.cat-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-
 <div class="layout">
-  <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-logo">
       <svg viewBox="0 0 24 24"><path d="M9 12h6m-3-3v6M12 3a9 9 0 100 18A9 9 0 0012 3z"/></svg>
@@ -157,17 +123,16 @@
       <button class="btn-logout" onclick="doLogout()">Keluar</button>
     </div>
   </aside>
-
-  <!-- Main -->
   <div class="main">
     <div class="topbar">
       <h2 id="topbar-title">Dashboard</h2>
-      <button class="btn btn-primary btn-sm" onclick="gotoView('new')">+ Tiket Baru</button>
+      <div class="topbar-right">
+        <span id="refresh-status" class="last-update"></span>
+        <button class="btn btn-sm" id="btn-refresh">&#8635; Refresh</button>
+        <button class="btn btn-primary btn-sm" onclick="gotoView('new')">+ Tiket Baru</button>
+      </div>
     </div>
-
     <div class="content">
-
-      <!-- Dashboard -->
       <div id="view-dashboard" class="view active">
         <div class="stats" id="stats-grid"></div>
         <div class="toolbar">
@@ -176,106 +141,54 @@
           <button class="filter-pill" onclick="setFilter(this,'in_progress')">In Progress</button>
           <button class="filter-pill" onclick="setFilter(this,'done')">Selesai</button>
         </div>
-        <table class="ticket-table" id="ticket-table">
-          <thead>
-            <tr>
-              <th>Nomor</th>
-              <th>Kategori</th>
-              <th>Judul / Pelapor</th>
-              <th>Prioritas</th>
-              <th>Status</th>
-              <th>Tanggal</th>
-            </tr>
-          </thead>
+        <table class="ticket-table">
+          <thead><tr><th>Nomor</th><th>Kategori</th><th>Judul / Pelapor</th><th>Prioritas</th><th>Status</th><th>Tanggal</th></tr></thead>
           <tbody id="ticket-tbody"></tbody>
         </table>
       </div>
-
-      <!-- New Ticket -->
       <div id="view-new" class="view">
         <div class="form-card">
           <div class="form-group">
             <div class="form-label">Kategori permintaan</div>
             <div class="cat-grid">
-              <div class="cat-card" data-cat="akun" onclick="selectCat(this)">
-                <div class="cat-icon-lg">🧑‍💻</div>
-                <div class="cat-title">Permintaan Akun Baru</div>
-                <div class="cat-sub">Email, sistem, atau akun aplikasi</div>
-              </div>
-              <div class="cat-card" data-cat="akses" onclick="selectCat(this)">
-                <div class="cat-icon-lg">🔑</div>
-                <div class="cat-title">Akses Baru</div>
-                <div class="cat-sub">Hak akses folder, aplikasi, sistem</div>
-              </div>
-              <div class="cat-card" data-cat="hardware" onclick="selectCat(this)">
-                <div class="cat-icon-lg">🖥️</div>
-                <div class="cat-title">Kerusakan Hardware</div>
-                <div class="cat-sub">Laptop, monitor, printer, periferal</div>
-              </div>
-              <div class="cat-card" data-cat="sistem" onclick="selectCat(this)">
-                <div class="cat-icon-lg">🐛</div>
-                <div class="cat-title">Sistem Error</div>
-                <div class="cat-sub">Aplikasi error, crash, tidak bisa diakses</div>
-              </div>
+              <button class="cat-card" data-cat="akun" onclick="selectCat(this)"><div class="cat-icon-lg">&#128105;&#8205;&#128187;</div><div class="cat-title">Permintaan Akun Baru</div><div class="cat-sub">Email, sistem, atau akun aplikasi</div></button>
+              <button class="cat-card" data-cat="akses" onclick="selectCat(this)"><div class="cat-icon-lg">&#128273;</div><div class="cat-title">Akses Baru</div><div class="cat-sub">Hak akses folder, aplikasi, sistem</div></button>
+              <button class="cat-card" data-cat="hardware" onclick="selectCat(this)"><div class="cat-icon-lg">&#128421;</div><div class="cat-title">Kerusakan Hardware</div><div class="cat-sub">Laptop, monitor, printer, periferal</div></button>
+              <button class="cat-card" data-cat="sistem" onclick="selectCat(this)"><div class="cat-icon-lg">&#128027;</div><div class="cat-title">Sistem Error</div><div class="cat-sub">Aplikasi error, crash, tidak bisa diakses</div></button>
             </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Judul singkat masalah</label>
-            <input type="text" class="form-control" id="inp-judul" placeholder="Contoh: Monitor tidak menyala di ruang kerja B2">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Prioritas</label>
+          <div class="form-group"><label class="form-label">Judul singkat masalah</label><input type="text" class="form-control" id="inp-judul" placeholder="Contoh: Monitor tidak menyala di ruang kerja B2"></div>
+          <div class="form-group"><label class="form-label">Prioritas</label>
             <select class="form-control" id="inp-prioritas">
               <option value="rendah">Rendah</option>
               <option value="sedang" selected>Sedang</option>
               <option value="tinggi">Tinggi</option>
-              <option value="kritis">Kritis — hambat pekerjaan</option>
+              <option value="kritis">Kritis</option>
             </select>
           </div>
-          <div class="form-group">
-            <label class="form-label">Deskripsi detail</label>
-            <textarea class="form-control" id="inp-desc" placeholder="Jelaskan masalah atau permintaan Anda secara detail. Sebutkan langkah yang sudah dicoba jika ada."></textarea>
-          </div>
+          <div class="form-group"><label class="form-label">Deskripsi detail</label><textarea class="form-control" id="inp-desc" placeholder="Jelaskan masalah secara detail..."></textarea></div>
           <div class="btn-row">
             <button class="btn" onclick="gotoView('dashboard')">Batal</button>
-            <button class="btn btn-primary" onclick="submitTicket()">Kirim Tiket →</button>
+            <button class="btn btn-primary" onclick="submitTicket()">Kirim Tiket</button>
           </div>
         </div>
       </div>
-
-      <!-- Tiket Saya / Semua (same view, different filter) -->
       <div id="view-mytickets" class="view">
         <table class="ticket-table">
-          <thead>
-            <tr>
-              <th>Nomor</th>
-              <th>Kategori</th>
-              <th>Judul / Pelapor</th>
-              <th>Prioritas</th>
-              <th>Status</th>
-              <th>Tanggal</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Nomor</th><th>Kategori</th><th>Judul / Pelapor</th><th>Prioritas</th><th>Status</th><th>Tanggal</th></tr></thead>
           <tbody id="my-tbody"></tbody>
         </table>
       </div>
-
-      <!-- Detail -->
       <div id="view-detail" class="view">
-        <div style="margin-bottom:1rem;">
-          <button class="btn btn-sm" onclick="history.back(); gotoView(prevView)">← Kembali</button>
-        </div>
+        <div style="margin-bottom:1rem"><button class="btn btn-sm" id="btn-back">&#8592; Kembali</button></div>
         <div class="detail-grid">
           <div class="detail-main">
+            <div class="panel"><h3 id="d-judul">—</h3><p class="desc-text" id="d-desc">—</p></div>
             <div class="panel">
-              <h3 id="d-judul">—</h3>
-              <p class="desc-text" id="d-desc">—</p>
-            </div>
-            <div class="panel" id="komentar-panel">
-              <h3>Komentar & Pembaruan</h3>
+              <h3>Komentar</h3>
               <div class="komentar-list" id="komentar-list"></div>
-              <textarea class="form-control" id="komentar-inp" placeholder="Tambahkan komentar atau catatan tindakan..." style="margin-bottom:8px;"></textarea>
-              <div style="text-align:right;"><button class="btn btn-primary btn-sm" onclick="sendKomentar()">Kirim</button></div>
+              <textarea class="form-control" id="komentar-inp" placeholder="Tambahkan komentar..." style="margin-bottom:8px"></textarea>
+              <div style="text-align:right"><button class="btn btn-primary btn-sm" id="btn-komentar">Kirim</button></div>
             </div>
           </div>
           <div class="detail-side">
@@ -290,234 +203,255 @@
               <div class="meta-row"><span class="meta-key">Ditangani</span><span class="meta-val" id="d-assign">—</span></div>
               <div class="meta-row"><span class="meta-key">Dibuat</span><span class="meta-val" id="d-tgl">—</span></div>
             </div>
-            <div class="panel" id="admin-actions" style="display:none;">
+            <div class="panel" id="admin-actions" style="display:none">
               <h3>Tindakan Admin</h3>
-              <div class="form-group">
-                <label class="form-label">Ubah status</label>
-                <select class="form-control" id="a-status">
-                  <option value="open">Open</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="done">Selesai</option>
-                </select>
+              <div class="form-group"><label class="form-label">Status</label>
+                <select class="form-control" id="a-status"><option value="open">Open</option><option value="in_progress">In Progress</option><option value="done">Selesai</option></select>
               </div>
-              <div class="form-group">
-                <label class="form-label">Assign ke</label>
+              <div class="form-group"><label class="form-label">Assign ke</label>
                 <select class="form-control" id="a-assign"><option value="">— Tidak ada —</option></select>
               </div>
-              <button class="btn btn-primary" style="width:100%" onclick="saveAdmin()">Simpan</button>
+              <button class="btn btn-primary" style="width:100%" id="btn-save-admin">Simpan</button>
             </div>
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </div>
-
 <script>
-const CAT = {
-  akun:     { label: 'Akun Baru',          color: '#185FA5' },
-  akses:    { label: 'Akses Baru',         color: '#0F6E56' },
-  hardware: { label: 'Kerusakan Hardware', color: '#854F0B' },
-  sistem:   { label: 'Sistem Error',       color: '#A32D2D' }
+var CAT = {
+  akun:     {label:'Akun Baru',color:'#185FA5'},
+  akses:    {label:'Akses Baru',color:'#0F6E56'},
+  hardware: {label:'Kerusakan Hardware',color:'#854F0B'},
+  sistem:   {label:'Sistem Error',color:'#A32D2D'}
 };
-const STAT_LABEL = { open: 'Open', in_progress: 'In Progress', done: 'Selesai' };
+var STAT = {open:'Open',in_progress:'In Progress',done:'Selesai'};
+var me = null;
+var allTickets = [];
+var currentFilter = 'all';
+var currentTicketId = null;
+var prevView = 'dashboard';
+var currentView = 'dashboard';
+var selectedCat = '';
 
-let me = null;
-let allTickets = [];
-let currentFilter = 'all';
-let currentTicketId = null;
-let prevView = 'dashboard';
-let selectedCat = '';
-
-async function init() {
-  me = await fetch('/me').then(r => r.json());
-  document.getElementById('sidebar-nama').textContent = me.nama;
-  document.getElementById('sidebar-role').textContent = me.role === 'admin' ? 'Administrator' : 'Staff — ' + (me.departemen || '');
-  if (me.role === 'admin') {
-    document.getElementById('nav-mytickets-label').textContent = 'Semua Tiket';
-  }
-  await loadTickets();
-  renderDashboard();
+function doXhr(method, url, data, cb) {
+  var x = new XMLHttpRequest();
+  x.open(method, url);
+  x.setRequestHeader('Content-Type', 'application/json');
+  x.onreadystatechange = function() {
+    if (x.readyState !== 4) return;
+    try { cb(null, JSON.parse(x.responseText), x.status); }
+    catch(e) { cb('Parse error'); }
+  };
+  x.onerror = function() { cb('Network error'); };
+  x.send(data ? JSON.stringify(data) : null);
 }
 
-async function loadTickets() {
-  allTickets = await fetch('/api/tickets').then(r => r.json());
+function stampTime() {
+  var now = new Date();
+  var h = String(now.getHours()).padStart(2,'0');
+  var m = String(now.getMinutes()).padStart(2,'0');
+  var s = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('refresh-status').textContent = 'Update: '+h+':'+m+':'+s;
+}
+
+function loadAndRender(cb) {
+  doXhr('GET', '/api/tickets?t='+Date.now(), null, function(err, data) {
+    if (!err && Array.isArray(data)) {
+      allTickets = data;
+      stampTime();
+    }
+    if (cb) cb();
+  });
+}
+
+document.getElementById('btn-refresh').onclick = function() {
+  var btn = document.getElementById('btn-refresh');
+  btn.disabled = true;
+  btn.textContent = '...';
+  loadAndRender(function() {
+    if (currentView === 'dashboard') renderDashboard();
+    else if (currentView === 'mytickets') renderMyTickets();
+    btn.disabled = false;
+    btn.innerHTML = '&#8635; Refresh';
+  });
+};
+
+document.getElementById('btn-back').onclick = function() { gotoView(prevView); };
+document.getElementById('btn-komentar').onclick = function() { sendKomentar(); };
+document.getElementById('btn-save-admin').onclick = function() { saveAdmin(); };
+
+function init() {
+  doXhr('GET', '/me', null, function(err, data) {
+    if (err || data.error) return window.location.href = '/login';
+    me = data;
+    document.getElementById('sidebar-nama').textContent = me.nama;
+    document.getElementById('sidebar-role').textContent = me.role === 'admin' ? 'Administrator' : 'Staff' + (me.departemen ? ' — '+me.departemen : '');
+    if (me.role === 'admin') document.getElementById('nav-mytickets-label').textContent = 'Semua Tiket';
+    loadAndRender(function() { renderDashboard(); });
+    setInterval(function() {
+      if (currentView === 'dashboard' || currentView === 'mytickets') {
+        loadAndRender(function() {
+          if (currentView === 'dashboard') renderDashboard();
+          else renderMyTickets();
+        });
+      }
+    }, 30000);
+  });
 }
 
 function gotoView(v) {
-  prevView = document.querySelector('.view.active')?.id?.replace('view-', '') || 'dashboard';
-  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  document.getElementById('view-' + v).classList.add('active');
-  const navEl = document.getElementById('nav-' + v);
-  if (navEl) navEl.classList.add('active');
-  const titles = { dashboard: 'Dashboard', new: 'Tiket Baru', mytickets: me?.role === 'admin' ? 'Semua Tiket' : 'Tiket Saya', detail: 'Detail Tiket' };
+  prevView = currentView;
+  currentView = v;
+  document.querySelectorAll('.view').forEach(function(el) { el.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(el) { el.classList.remove('active'); });
+  document.getElementById('view-'+v).classList.add('active');
+  var nav = document.getElementById('nav-'+v);
+  if (nav) nav.classList.add('active');
+  var titles = {dashboard:'Dashboard',new:'Tiket Baru',mytickets:me&&me.role==='admin'?'Semua Tiket':'Tiket Saya',detail:'Detail Tiket'};
   document.getElementById('topbar-title').textContent = titles[v] || '';
-  if (v === 'dashboard') renderDashboard();
-  if (v === 'mytickets') renderMyTickets();
+  if (v === 'dashboard') loadAndRender(function() { renderDashboard(); });
+  if (v === 'mytickets') loadAndRender(function() { renderMyTickets(); });
 }
 
 function renderDashboard() {
-  const total = allTickets.length;
-  const open = allTickets.filter(t => t.status === 'open').length;
-  const prog = allTickets.filter(t => t.status === 'in_progress').length;
-  const done = allTickets.filter(t => t.status === 'done').length;
-  document.getElementById('stats-grid').innerHTML = `
-    <div class="stat"><div class="stat-label">Total Tiket</div><div class="stat-val">${total}</div></div>
-    <div class="stat"><div class="stat-label">Open</div><div class="stat-val blue">${open}</div></div>
-    <div class="stat"><div class="stat-label">In Progress</div><div class="stat-val amber">${prog}</div></div>
-    <div class="stat"><div class="stat-label">Selesai</div><div class="stat-val green">${done}</div></div>
-  `;
+  var open=0,prog=0,done=0;
+  allTickets.forEach(function(t) {
+    if (t.status==='open') open++;
+    else if (t.status==='in_progress') prog++;
+    else if (t.status==='done') done++;
+  });
+  document.getElementById('stats-grid').innerHTML =
+    '<div class="stat"><div class="stat-label">Total Tiket</div><div class="stat-val">'+allTickets.length+'</div></div>'+
+    '<div class="stat"><div class="stat-label">Open</div><div class="stat-val blue">'+open+'</div></div>'+
+    '<div class="stat"><div class="stat-label">In Progress</div><div class="stat-val amber">'+prog+'</div></div>'+
+    '<div class="stat"><div class="stat-label">Selesai</div><div class="stat-val green">'+done+'</div></div>';
   renderTable('ticket-tbody', currentFilter);
 }
 
-function renderMyTickets() {
-  renderTable('my-tbody', 'all');
-}
+function renderMyTickets() { renderTable('my-tbody','all'); }
 
 function renderTable(tbodyId, filter) {
-  const tbody = document.getElementById(tbodyId);
-  let rows = [...allTickets];
-  if (filter !== 'all') rows = rows.filter(t => t.status === filter);
-  if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="6" class="empty">Belum ada tiket</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = rows.map(t => {
-    const c = CAT[t.kategori] || { label: t.kategori, color: '#888' };
-    const tgl = t.created_at ? t.created_at.split('T')[0].split(' ')[0] : '';
-    return `<tr onclick="openDetail(${t.id})">
-      <td style="font-family:monospace;font-size:12px;color:#888">${t.nomor}</td>
-      <td><span style="display:inline-flex;align-items:center;gap:5px;font-size:13px;"><span class="cat-dot" style="background:${c.color}"></span>${c.label}</span></td>
-      <td>
-        <div class="ticket-title-cell">${t.judul}</div>
-        <div class="ticket-sub">${t.pelapor} · ${t.departemen || '—'}</div>
-      </td>
-      <td><span class="badge badge-${t.prioritas}">${t.prioritas}</span></td>
-      <td><span class="badge badge-${t.status}">${STAT_LABEL[t.status] || t.status}</span></td>
-      <td style="font-size:12px;color:#888">${tgl}</td>
-    </tr>`;
-  }).join('');
+  var tbody = document.getElementById(tbodyId);
+  var rows = allTickets.slice();
+  if (filter !== 'all') rows = rows.filter(function(t){ return t.status===filter; });
+  if (!rows.length) { tbody.innerHTML='<tr><td colspan="6" class="empty">Belum ada tiket</td></tr>'; return; }
+  var html = '';
+  rows.forEach(function(t) {
+    var c = CAT[t.kategori] || {label:t.kategori,color:'#888'};
+    var tgl = (t.created_at||'').replace('T',' ').split(' ')[0];
+    html += '<tr class="clickable" onclick="openDetail('+t.id+')">'+
+      '<td style="font-family:monospace;font-size:12px;color:#888">'+t.nomor+'</td>'+
+      '<td><span style="display:inline-flex;align-items:center;font-size:13px"><span class="cat-dot" style="background:'+c.color+'"></span>'+c.label+'</span></td>'+
+      '<td><div class="ticket-title-cell">'+t.judul+'</div><div class="ticket-sub">'+t.pelapor+' &middot; '+(t.departemen||'&mdash;')+'</div></td>'+
+      '<td><span class="badge badge-'+t.prioritas+'">'+t.prioritas+'</span></td>'+
+      '<td><span class="badge badge-'+t.status+'">'+(STAT[t.status]||t.status)+'</span></td>'+
+      '<td style="font-size:12px;color:#888">'+tgl+'</td></tr>';
+  });
+  tbody.innerHTML = html;
 }
 
 function setFilter(el, f) {
   currentFilter = f;
-  document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.filter-pill').forEach(function(b){ b.classList.remove('active'); });
   el.classList.add('active');
   renderTable('ticket-tbody', f);
 }
 
 function selectCat(el) {
-  document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.cat-card').forEach(function(c){ c.classList.remove('selected'); });
   el.classList.add('selected');
-  selectedCat = el.dataset.cat;
+  selectedCat = el.getAttribute('data-cat');
 }
 
-async function submitTicket() {
+function submitTicket() {
   if (!selectedCat) return alert('Pilih kategori terlebih dahulu');
-  const judul = document.getElementById('inp-judul').value.trim();
-  const prioritas = document.getElementById('inp-prioritas').value;
-  const deskripsi = document.getElementById('inp-desc').value.trim();
+  var judul = document.getElementById('inp-judul').value.trim();
+  var prioritas = document.getElementById('inp-prioritas').value;
+  var deskripsi = document.getElementById('inp-desc').value.trim();
   if (!judul) return alert('Judul wajib diisi');
   if (!deskripsi) return alert('Deskripsi wajib diisi');
-
-  const r = await fetch('/api/tickets', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ kategori: selectedCat, judul, prioritas, deskripsi })
+  doXhr('POST','/api/tickets',{kategori:selectedCat,judul:judul,prioritas:prioritas,deskripsi:deskripsi},function(err,data,status) {
+    if (err||status!==200) return alert((data&&data.error)||'Gagal mengirim tiket');
+    alert('Tiket '+data.nomor+' berhasil dikirim!');
+    document.getElementById('inp-judul').value='';
+    document.getElementById('inp-desc').value='';
+    document.getElementById('inp-prioritas').value='sedang';
+    document.querySelectorAll('.cat-card').forEach(function(c){ c.classList.remove('selected'); });
+    selectedCat='';
+    loadAndRender(function(){ gotoView('dashboard'); });
   });
-  const d = await r.json();
-  if (!r.ok) return alert(d.error);
-  alert(`Tiket ${d.nomor} berhasil dikirim!`);
-  document.getElementById('inp-judul').value = '';
-  document.getElementById('inp-desc').value = '';
-  document.getElementById('inp-prioritas').value = 'sedang';
-  document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('selected'));
-  selectedCat = '';
-  await loadTickets();
-  gotoView('dashboard');
 }
 
-async function openDetail(id) {
-  prevView = document.querySelector('.view.active')?.id?.replace('view-', '') || 'dashboard';
+function openDetail(id) {
+  prevView = currentView;
   currentTicketId = id;
-  const t = await fetch(`/api/tickets/${id}`).then(r => r.json());
-  if (t.error) return alert(t.error);
-
-  const c = CAT[t.kategori] || { label: t.kategori, color: '#888' };
-  document.getElementById('d-judul').textContent = t.judul;
-  document.getElementById('d-desc').textContent = t.deskripsi;
-  document.getElementById('d-nomor').textContent = t.nomor;
-  document.getElementById('d-status').innerHTML = `<span class="badge badge-${t.status}">${STAT_LABEL[t.status]}</span>`;
-  document.getElementById('d-prio').innerHTML = `<span class="badge badge-${t.prioritas}">${t.prioritas}</span>`;
-  document.getElementById('d-kat').innerHTML = `<span style="color:${c.color};font-weight:500">${c.label}</span>`;
-  document.getElementById('d-pelapor').textContent = t.pelapor;
-  document.getElementById('d-dept').textContent = t.departemen || '—';
-  document.getElementById('d-assign').textContent = t.assignee_nama || 'Belum ditugaskan';
-  document.getElementById('d-tgl').textContent = (t.created_at || '').split('T')[0].split(' ')[0];
-
-  // Komentar
-  const kList = document.getElementById('komentar-list');
-  if (t.komentar && t.komentar.length) {
-    kList.innerHTML = t.komentar.map(k => `
-      <div class="komentar-item">
-        <div class="komentar-header">
-          <strong>${k.nama_user}</strong>
-          <span>${k.role === 'admin' ? '· Admin' : ''}</span>
-          <span>· ${(k.created_at||'').split('T')[0].split(' ')[0]}</span>
-        </div>
-        <div class="komentar-body">${k.isi}</div>
-      </div>
-    `).join('');
-  } else {
-    kList.innerHTML = '<p style="font-size:13px;color:#888;text-align:center;padding:1rem">Belum ada komentar</p>';
-  }
-
-  // Admin panel
-  if (me.role === 'admin') {
-    document.getElementById('admin-actions').style.display = 'block';
-    document.getElementById('a-status').value = t.status;
-    const users = await fetch('/api/tickets/admin/users').then(r => r.json());
-    const sel = document.getElementById('a-assign');
-    sel.innerHTML = '<option value="">— Tidak ada —</option>' + users.map(u =>
-      `<option value="${u.id}" ${t.assigned_to === u.id ? 'selected' : ''}>${u.nama} (${u.role})</option>`
-    ).join('');
-  } else {
-    document.getElementById('admin-actions').style.display = 'none';
-  }
-
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-  document.getElementById('view-detail').classList.add('active');
-  document.getElementById('topbar-title').textContent = 'Detail Tiket — ' + t.nomor;
+  doXhr('GET','/api/tickets/'+id,null,function(err,t) {
+    if (err||t.error) return alert(t&&t.error||'Gagal memuat tiket');
+    var c = CAT[t.kategori]||{label:t.kategori,color:'#888'};
+    document.getElementById('d-judul').textContent = t.judul;
+    document.getElementById('d-desc').textContent = t.deskripsi;
+    document.getElementById('d-nomor').textContent = t.nomor;
+    document.getElementById('d-status').innerHTML = '<span class="badge badge-'+t.status+'">'+(STAT[t.status]||t.status)+'</span>';
+    document.getElementById('d-prio').innerHTML = '<span class="badge badge-'+t.prioritas+'">'+t.prioritas+'</span>';
+    document.getElementById('d-kat').innerHTML = '<span style="color:'+c.color+';font-weight:500">'+c.label+'</span>';
+    document.getElementById('d-pelapor').textContent = t.pelapor;
+    document.getElementById('d-dept').textContent = t.departemen||'—';
+    document.getElementById('d-assign').textContent = t.assignee_nama||'Belum ditugaskan';
+    document.getElementById('d-tgl').textContent = (t.created_at||'').replace('T',' ').split(' ')[0];
+    var kList = document.getElementById('komentar-list');
+    if (t.komentar&&t.komentar.length) {
+      var khtml='';
+      t.komentar.forEach(function(k) {
+        khtml+='<div class="komentar-item"><div class="komentar-header"><strong>'+k.nama_user+'</strong>'+(k.role==='admin'?'<span>&middot; Admin</span>':'')+
+          '<span>&middot; '+(k.created_at||'').replace('T',' ').split(' ')[0]+'</span></div><div class="komentar-body">'+k.isi+'</div></div>';
+      });
+      kList.innerHTML = khtml;
+    } else {
+      kList.innerHTML = '<p style="font-size:13px;color:#888;text-align:center;padding:1rem">Belum ada komentar</p>';
+    }
+    if (me.role==='admin') {
+      document.getElementById('admin-actions').style.display='block';
+      document.getElementById('a-status').value=t.status;
+      doXhr('GET','/api/tickets/admin/users',null,function(err2,users) {
+        if (err2||!Array.isArray(users)) return;
+        var opts='<option value="">— Tidak ada —</option>';
+        users.forEach(function(u){ opts+='<option value="'+u.id+'"'+(t.assigned_to===u.id?' selected':'')+'>'+u.nama+' ('+u.role+')</option>'; });
+        document.getElementById('a-assign').innerHTML=opts;
+      });
+    } else {
+      document.getElementById('admin-actions').style.display='none';
+    }
+    currentView='detail';
+    document.querySelectorAll('.view').forEach(function(el){ el.classList.remove('active'); });
+    document.querySelectorAll('.nav-item').forEach(function(el){ el.classList.remove('active'); });
+    document.getElementById('view-detail').classList.add('active');
+    document.getElementById('topbar-title').textContent='Detail Tiket — '+t.nomor;
+  });
 }
 
-async function sendKomentar() {
-  const isi = document.getElementById('komentar-inp').value.trim();
+function sendKomentar() {
+  var isi = document.getElementById('komentar-inp').value.trim();
   if (!isi) return;
-  await fetch(`/api/tickets/${currentTicketId}/komentar`, {
-    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({isi})
+  doXhr('POST','/api/tickets/'+currentTicketId+'/komentar',{isi:isi},function(err) {
+    if (err) return alert('Gagal mengirim komentar');
+    document.getElementById('komentar-inp').value='';
+    openDetail(currentTicketId);
   });
-  document.getElementById('komentar-inp').value = '';
-  openDetail(currentTicketId);
 }
 
-async function saveAdmin() {
-  const status = document.getElementById('a-status').value;
-  const assigned_to = document.getElementById('a-assign').value;
-  await fetch(`/api/tickets/${currentTicketId}`, {
-    method: 'PATCH',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ status, assigned_to: assigned_to || null })
+function saveAdmin() {
+  var status = document.getElementById('a-status').value;
+  var assigned_to = document.getElementById('a-assign').value;
+  doXhr('PATCH','/api/tickets/'+currentTicketId,{status:status,assigned_to:assigned_to||null},function(err) {
+    if (err) return alert('Gagal menyimpan');
+    loadAndRender(function(){ openDetail(currentTicketId); });
   });
-  await loadTickets();
-  openDetail(currentTicketId);
 }
 
-async function doLogout() {
-  await fetch('/logout', { method: 'POST' });
-  window.location.href = '/login';
+function doLogout() {
+  doXhr('POST','/logout',null,function(){ window.location.href='/login'; });
 }
 
 init();
