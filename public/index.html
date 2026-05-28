@@ -180,7 +180,10 @@
         </table>
       </div>
       <div id="view-detail" class="view">
-        <div style="margin-bottom:1rem"><button class="btn btn-sm" id="btn-back">&#8592; Kembali</button></div>
+        <div style="margin-bottom:1rem;display:flex;gap:8px;align-items:center">
+  <button class="btn btn-sm" id="btn-back">&#8592; Kembali</button>
+  <button class="btn btn-sm" id="btn-refresh-detail">&#8635; Refresh Tiket</button>
+</div>
         <div class="detail-grid">
           <div class="detail-main">
             <div class="panel"><h3 id="d-judul">—</h3><p class="desc-text" id="d-desc">—</p></div>
@@ -279,6 +282,7 @@ document.getElementById('btn-refresh').onclick = function() {
 };
 
 document.getElementById('btn-back').onclick = function() { gotoView(prevView); };
+document.getElementById('btn-refresh-detail').onclick = function() { openDetail(currentTicketId); };
 document.getElementById('btn-komentar').onclick = function() { sendKomentar(); };
 document.getElementById('btn-save-admin').onclick = function() { saveAdmin(); };
 
