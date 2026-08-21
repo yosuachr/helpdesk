@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DB Admin — Helpdesk</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;color:#1a1a1a;min-height:100vh}
+  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center}
+  .login-card{background:#fff;border:1px solid #e5e5e0;border-radius:12px;padding:2rem;width:360px}
+  .login-card h1{font-size:16px;font-weight:600;margin-bottom:4px}
+  .login-card p{font-size:13px;color:#888;margin-bottom:1.5rem}
+  .layout{display:flex;min-height:100vh}
+  .sidebar{width:200px;background:#1a1a1a;color:#fff;padding:1rem 0;flex-shrink:0;display:flex;flex-direction:column}
+  .sidebar h2{font-size:13px;font-weight:600;padding:0 1rem 1rem;border-bottom:1px solid #333;margin-bottom:0.5rem;color:#aaa;text-transform:uppercase;letter-spacing:.05em}
+  .tbl-item{padding:8px 1rem;font-size:13px;color:#aaa;cursor:pointer;border-left:3px solid transparent;transition:all .15s}
+  .tbl-item:hover{color:#fff;background:#2a2a2a}
+  .tbl-item.active{color:#fff;border-left-color:#fff;background:#2a2a2a}
+  .sidebar-foot{margin-top:auto;padding:1rem}
+  .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .topbar{background:#fff;border-bottom:1px solid #e5e5e0;padding:0 1.5rem;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+  .topbar h2{font-size:15px;font-weight:600}
+  .content{flex:1;overflow:auto;padding:1.5rem}
+  label{display:block;font-size:12px;color:#666;margin-bottom:5px}
+  input,select,textarea{width:100%;border:1px solid #e5e5e0;border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit;outline:none;background:#fff}
+  input:focus,select:focus,textarea:focus{border-color:#1a1a1a}
+  .btn{cursor:pointer;border:1px solid #e5e5e0;background:#fff;color:#1a1a1a;border-radius:8px;padding:7px 14px;font-size:13px;font-family:inherit}
+  .btn:hover{background:#f5f5f0}
+  .btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+  .btn-primary:hover{opacity:.85;background:#1a1a1a}
+  .btn-danger{background:#c0392b;color:#fff;border-color:#c0392b}
+  .btn-sm{padding:4px 10px;font-size:12px}
+  .toolbar{display:flex;gap:8px;align-items:center;margin-bottom:1rem;flex-wrap:wrap}
+  table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e5e5e0;border-radius:10px;overflow:hidden;font-size:12px}
+  th{background:#f9f9f7;padding:8px 12px;text-align:left;font-weight:500;color:#666;border-bottom:1px solid #e5e5e0;white-space:nowrap}
+  td{padding:7px 12px;border-bottom:1px solid #f0f0ec;vertical-align:top;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#fafaf8}
+  .err{background:#fdf0f0;border:1px solid #f5c6c6;border-radius:6px;padding:8px 12px;font-size:13px;color:#c0392b;margin-bottom:12px}
+  .info{background:#E6F1FB;border:1px solid #b8d4f0;border-radius:6px;padding:8px 12px;font-size:13px;color:#0C447C;margin-bottom:12px}
+  .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center}
+  .modal-overlay.show{display:flex}
+  .modal{background:#fff;border-radius:12px;padding:1.5rem;width:100%;max-width:500px;max-height:90vh;overflow-y:auto}
+  .modal h3{font-size:15px;font-weight:600;margin-bottom:1rem}
+  .form-group{margin-bottom:12px}
+  .pagination{display:flex;gap:4px;align-items:center;margin-top:12px;font-size:13px;color:#888}
+  .sql-area{font-family:monospace;min-height:100px;font-size:13px}
+  .badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:10px;background:#f0f0ec;color:#666}
+</style>
+</head>
+<body>
+
+<div id="view-login" class="login-wrap">
+  <div class="login-card">
+    <h1>&#128274; DB Admin</h1>
+    <p>Akses khusus manajemen database</p>
+    <div id="login-err" class="err" style="display:none"></div>
+    <div class="form-group"><label>Username</label><input type="text" id="l-user" placeholder="dbadmin"></div>
+    <div class="form-group" style="margin-bottom:1rem"><label>Password</label><input type="password" id="l-pass" placeholder="••••••••"></div>
+    <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Masuk</button>
+  </div>
+</div>
+
+<div id="view-app" class="layout" style="display:none">
+  <aside class="sidebar">
+    <h2>Tabel</h2>
+    <div id="table-list"></div>
+    <div class="sidebar-foot">
+      <button class="btn btn-sm" style="width:100%;margin-bottom:8px;background:#2a2a2a;color:#aaa;border-color:#444" onclick="showQueryPanel()">&#128196; SQL Query</button>
+      <button class="btn btn-sm" style="width:100%;background:transparent;color:#888;border-color:#444" onclick="doLogout()">Keluar</button>
+    </div>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <h2 id="topbar-title">Pilih tabel</h2>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="search-input" placeholder="Cari..." style="width:200px;height:32px" oninput="doSearch()">
+        <button class="btn btn-primary btn-sm" onclick="showModalAdd()">+ Tambah Row</button>
+      </div>
+    </div>
+    <div class="content">
+      <div id="msg-area"></div>
+      <div id="table-area"></div>
+      <div class="pagination" id="pagination-area"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal">
+    <h3 id="modal-title">Edit Row</h3>
+    <div id="modal-fields"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:1rem">
+      <button class="btn" onclick="closeModal()">Batal</button>
+      <button class="btn btn-primary" onclick="saveRow()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-query">
+  <div class="modal" style="max-width:700px">
+    <h3>&#128196; SQL Query</h3>
+    <div class="form-group"><label>Ketik SQL (SELECT, UPDATE, DELETE, INSERT)</label><textarea class="sql-area form-control" id="sql-input" placeholder="SELECT * FROM tickets LIMIT 10"></textarea></div>
+    <div style="display:flex;gap:8px;margin-bottom:1rem">
+      <button class="btn btn-primary" onclick="runQuery()">&#9654; Jalankan</button>
+      <button class="btn" onclick="document.getElementById('modal-query').classList.remove('show')">Tutup</button>
+    </div>
+    <div id="query-result"></div>
+  </div>
+</div>
+
+<script>
+var currentTable='', currentPage=1, currentSearch='', currentCols=[], editId=null;
+
+function doXhr(method,url,data,cb){
+  var x=new XMLHttpRequest();
+  x.open(method,url);
+  x.setRequestHeader('Content-Type','application/json');
+  x.onreadystatechange=function(){if(x.readyState!==4)return;try{cb(null,JSON.parse(x.responseText),x.status);}catch(e){cb('Parse error');}};
+  x.onerror=function(){cb('Network error');};
+  x.send(data?JSON.stringify(data):null);
+}
+
+function doLogin(){
+  var u=document.getElementById('l-user').value;
+  var p=document.getElementById('l-pass').value;
+  doXhr('POST','/dbadmin/api/login',{username:u,password:p},function(err,data,status){
+    if(err||status!==200){document.getElementById('login-err').textContent=(data&&data.error)||'Login gagal';document.getElementById('login-err').style.display='block';return;}
+    document.getElementById('view-login').style.display='none';
+    document.getElementById('view-app').style.display='flex';
+    loadTables();
+  });
+}
+
+function doLogout(){
+  doXhr('POST','/dbadmin/api/logout',null,function(){window.location.reload();});
+}
+
+document.addEventListener('keydown',function(e){if(e.key==='Enter'&&document.getElementById('view-login').style.display!=='none')doLogin();});
+
+function loadTables(){
+  doXhr('GET','/dbadmin/api/tables',null,function(err,data){
+    if(err||!Array.isArray(data))return;
+    var list=document.getElementById('table-list');
+    list.innerHTML='';
+    data.forEach(function(t){
+      var div=document.createElement('div');
+      div.className='tbl-item';
+      div.textContent=t;
+      div.onclick=function(){selectTable(t);};
+      list.appendChild(div);
+    });
+  });
+}
+
+function selectTable(name){
+  currentTable=name;currentPage=1;currentSearch='';
+  document.getElementById('search-input').value='';
+  document.querySelectorAll('.tbl-item').forEach(function(el){el.classList.toggle('active',el.textContent===name);});
+  document.getElementById('topbar-title').textContent=name;
+  loadTableData();
+}
+
+function doSearch(){currentPage=1;currentSearch=document.getElementById('search-input').value;loadTableData();}
+
+function loadTableData(){
+  if(!currentTable)return;
+  var url='/dbadmin/api/tables/'+currentTable+'?page='+currentPage+'&search='+encodeURIComponent(currentSearch);
+  doXhr('GET',url,null,function(err,data,status){
+    if(err||status!==200){showMsg((data&&data.error)||'Gagal memuat data','err');return;}
+    currentCols=data.cols;
+    renderTable(data);
+    renderPagination(data);
+  });
+}
+
+function renderTable(data){
+  var area=document.getElementById('table-area');
+  if(!data.rows.length){area.innerHTML='<p style="color:#888;font-size:13px;padding:2rem;text-align:center">Tidak ada data</p>';return;}
+  var html='<div style="overflow-x:auto"><table><thead><tr>';
+  data.cols.forEach(function(c){html+='<th>'+c+'</th>';});
+  html+='<th>Aksi</th></tr></thead><tbody>';
+  data.rows.forEach(function(row){
+    html+='<tr>';
+    data.cols.forEach(function(c){
+      var val=row[c];
+      var display=val===null||val===undefined?'<span style="color:#ccc">null</span>':String(val).length>50?String(val).substring(0,50)+'...':String(val);
+      html+='<td title="'+String(val||'')+'">'+display+'</td>';
+    });
+    html+='<td style="white-space:nowrap"><button class="btn btn-sm" onclick="showModalEdit('+JSON.stringify(row).replace(/"/g,'&quot;')+')">Edit</button> ';
+    html+='<button class="btn btn-sm btn-danger" onclick="deleteRow('+row.id+')">Hapus</button></td></tr>';
+  });
+  html+='</tbody></table></div>';
+  area.innerHTML=html;
+}
+
+function renderPagination(data){
+  var area=document.getElementById('pagination-area');
+  var totalPages=Math.ceil(data.total/data.limit)||1;
+  var html='<span>'+((data.page-1)*data.limit+1)+'-'+Math.min(data.page*data.limit,data.total)+' dari '+data.total+' rows</span><div style="display:flex;gap:4px;margin-left:auto">';
+  html+='<button class="btn btn-sm" onclick="changePg('+(data.page-1)+')" '+(data.page===1?'disabled':'')+'>&#8592;</button>';
+  for(var i=1;i<=totalPages;i++){
+    if(i===1||i===totalPages||Math.abs(i-data.page)<=1)html+='<button class="btn btn-sm'+(i===data.page?' btn-primary':'')+'" onclick="changePg('+i+')">'+i+'</button>';
+    else if(Math.abs(i-data.page)===2)html+='<span style="padding:0 4px">...</span>';
+  }
+  html+='<button class="btn btn-sm" onclick="changePg('+(data.page+1)+')" '+(data.page===totalPages?'disabled':'')+'>&#8594;</button></div>';
+  area.innerHTML=html;
+}
+
+function changePg(p){currentPage=p;loadTableData();}
+
+function showModalEdit(row){
+  editId=row.id;
+  document.getElementById('modal-title').textContent='Edit Row — id: '+row.id;
+  var fields='';
+  currentCols.forEach(function(c){
+    if(c==='id')return;
+    var val=row[c]===null||row[c]===undefined?'':row[c];
+    var isLong=String(val).length>80;
+    fields+='<div class="form-group"><label>'+c+'</label>';
+    if(isLong)fields+='<textarea class="form-control" id="field-'+c+'" style="min-height:80px">'+val+'</textarea>';
+    else fields+='<input type="text" id="field-'+c+'" value="'+String(val).replace(/"/g,'&quot;')+'">';
+    fields+='</div>';
+  });
+  document.getElementById('modal-fields').innerHTML=fields;
+  document.getElementById('modal-edit').classList.add('show');
+}
+
+function showModalAdd(){
+  if(!currentTable){alert('Pilih tabel dulu');return;}
+  editId=null;
+  document.getElementById('modal-title').textContent='Tambah Row Baru';
+  var fields='';
+  currentCols.forEach(function(c){
+    if(c==='id')return;
+    fields+='<div class="form-group"><label>'+c+'</label><input type="text" id="field-'+c+'" placeholder="'+c+'"></div>';
+  });
+  document.getElementById('modal-fields').innerHTML=fields;
+  document.getElementById('modal-edit').classList.add('show');
+}
+
+function saveRow(){
+  var data={};
+  currentCols.forEach(function(c){
+    if(c==='id')return;
+    var el=document.getElementById('field-'+c);
+    if(el)data[c]=el.value;
+  });
+  if(editId){
+    doXhr('PATCH','/dbadmin/api/tables/'+currentTable+'/rows/'+editId,data,function(err,res,status){
+      if(err||status!==200){alert((res&&res.error)||'Gagal');return;}
+      closeModal();showMsg('Row berhasil diupdate','info');loadTableData();
+    });
+  } else {
+    doXhr('POST','/dbadmin/api/tables/'+currentTable+'/rows',data,function(err,res,status){
+      if(err||status!==200){alert((res&&res.error)||'Gagal');return;}
+      closeModal();showMsg('Row berhasil ditambahkan','info');loadTableData();
+    });
+  }
+}
+
+function deleteRow(id){
+  if(!confirm('Hapus row id '+id+'? Tindakan ini tidak bisa dibatalkan.'))return;
+  doXhr('DELETE','/dbadmin/api/tables/'+currentTable+'/rows/'+id,null,function(err,res,status){
+    if(err||status!==200){alert((res&&res.error)||'Gagal menghapus');return;}
+    showMsg('Row berhasil dihapus','info');loadTableData();
+  });
+}
+
+function showQueryPanel(){document.getElementById('modal-query').classList.add('show');}
+
+function runQuery(){
+  var sql=document.getElementById('sql-input').value.trim();
+  if(!sql)return;
+  doXhr('POST','/dbadmin/api/query',{sql:sql},function(err,data,status){
+    var area=document.getElementById('query-result');
+    if(err||status!==200){area.innerHTML='<div class="err">'+(data&&data.error||'Error')+'</div>';return;}
+    if(data.type==='select'&&data.rows&&data.rows.length){
+      var cols=Object.keys(data.rows[0]);
+      var html='<div style="overflow-x:auto"><table><thead><tr>'+cols.map(function(c){return '<th>'+c+'</th>';}).join('')+'</tr></thead><tbody>';
+      data.rows.forEach(function(row){html+='<tr>'+cols.map(function(c){return '<td>'+(row[c]===null?'<span style="color:#ccc">null</span>':row[c])+'</td>';}).join('')+'</tr>';});
+      html+='</tbody></table></div>';
+      html='<div class="info">'+data.rows.length+' baris ditemukan</div>'+html;
+      area.innerHTML=html;
+    } else if(data.type==='exec'){
+      area.innerHTML='<div class="info">Query berhasil dijalankan</div>';
+    } else {
+      area.innerHTML='<div class="info">Tidak ada hasil</div>';
+    }
+  });
+}
+
+function closeModal(){document.getElementById('modal-edit').classList.remove('show');}
+function showMsg(msg,type){var area=document.getElementById('msg-area');area.innerHTML='<div class="'+type+'" style="margin-bottom:1rem">'+msg+'</div>';setTimeout(function(){area.innerHTML='';},3000);}
+</script>
+</body>
+</html>

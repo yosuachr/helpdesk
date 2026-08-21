@@ -42,11 +42,82 @@ function initSchema() {
       judul TEXT NOT NULL,
       deskripsi TEXT NOT NULL,
       prioritas TEXT NOT NULL DEFAULT 'sedang',
+      departemen_tiket TEXT,
       status TEXT NOT NULL DEFAULT 'open',
       user_id INTEGER NOT NULL,
-      assigned_to INTEGER,
+      assigned_to TEXT,
+      ttd_penyerah TEXT,
+      ttd_penerima TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS kategori (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      kode TEXT UNIQUE NOT NULL,
+      judul TEXT NOT NULL,
+      deskripsi TEXT NOT NULL,
+      icon TEXT NOT NULL DEFAULT '📋',
+      warna TEXT NOT NULL DEFAULT '#555555',
+      urutan INTEGER NOT NULL DEFAULT 0,
+      aktif INTEGER NOT NULL DEFAULT 1
+    );
+    CREATE TABLE IF NOT EXISTS departemen (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nama TEXT UNIQUE NOT NULL,
+      urutan INTEGER NOT NULL DEFAULT 0
+    );
+    CREATE TABLE IF NOT EXISTS ticket_riwayat (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ticket_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      aksi TEXT NOT NULL,
+      detail TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS ticket_lampiran (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ticket_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      filename TEXT NOT NULL,
+      originalname TEXT NOT NULL,
+      mimetype TEXT,
+      size INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS ticket_read_status (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ticket_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      last_read_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(ticket_id, user_id)
+    );
+    CREATE TABLE IF NOT EXISTS asset_kategori (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nama TEXT UNIQUE NOT NULL,
+      urutan INTEGER NOT NULL DEFAULT 0
+    );
+    CREATE TABLE IF NOT EXISTS assets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      kode TEXT UNIQUE NOT NULL,
+      nama TEXT NOT NULL,
+      kategori_id INTEGER,
+      serial_number TEXT,
+      kondisi TEXT NOT NULL DEFAULT 'baik',
+      lokasi TEXT,
+      assigned_to TEXT,
+      tanggal_beli TEXT,
+      nilai_aset INTEGER DEFAULT 0,
+      keterangan TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS asset_riwayat (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      asset_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      aksi TEXT NOT NULL,
+      detail TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
     CREATE TABLE IF NOT EXISTS komentar (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
